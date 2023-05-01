@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace SoftUni.Models
 {
-    public partial class Employee
+    public class Employee
     {
         public Employee()
         {
-            Departments = new HashSet<Department>();
-            InverseManager = new HashSet<Employee>();
-            Projects = new HashSet<Project>();
+            this.Departments = new HashSet<Department>();
+            this.InverseManager = new HashSet<Employee>();
+            this.EmployeesProjects = new HashSet<EmployeeProject>();
         }
 
         public int EmployeeId { get; set; }
@@ -28,8 +28,6 @@ namespace SoftUni.Models
         public virtual Employee? Manager { get; set; }
         public virtual ICollection<Department> Departments { get; set; }
         public virtual ICollection<Employee> InverseManager { get; set; }
-
-        public virtual ICollection<Project> Projects { get; set; }
 
         public virtual ICollection<EmployeeProject> EmployeesProjects { get; set; }
     }

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace SoftUni.Models
 {
-    public partial class Address
+    public class Address
     {
         public Address()
         {
-            Employees = new HashSet<Employee>();
+            this.Employees = new HashSet<Employee>();
         }
 
         public int AddressId { get; set; }
