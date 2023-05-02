@@ -5,6 +5,12 @@ namespace P01_StudentSystem.Data.Models
 {
     public class Student
     {
+        public Student()
+        {
+            StudentsCourses = new HashSet<StudentCourse>();
+            Homeworks = new HashSet<Homework>();
+        }
+
         [Key]
         public int StudentId { get; set; }
 
