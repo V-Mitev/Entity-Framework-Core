@@ -3,6 +3,7 @@
     using BookShop.Models.Enums;
     using Data;
     using Initializer;
+    using Microsoft.EntityFrameworkCore.ValueGeneration;
     using System.Globalization;
     using System.Text;
 
@@ -13,11 +14,11 @@
             using var db = new BookShopContext();
             //DbInitializer.ResetDatabase(db);
 
-            string input = Console.ReadLine();
+            //string input = Console.ReadLine();
 
             //int input = int.Parse(Console.ReadLine());
 
-            string result = GetBooksReleasedBefore(db, input);
+            string result = GetTotalProfitByCategory(db);
 
             Console.WriteLine(result);
         }
@@ -136,9 +137,120 @@
 
         // Problem 08
 
-        //public static string GetAuthorNamesEndingIn(BookShopContext context, string input)
-        //{
+        public static string GetAuthorNamesEndingIn(BookShopContext context, string input)
+        {
+            StringBuilder sb = new StringBuilder();
 
-        //}
+            var books = context.Authors
+                .Where(b => b.FirstName.EndsWith(input))
+                .Select(a => new
+                {
+                    FullName = a.FirstName + " " + a.LastName
+                })
+                .OrderBy(b => b.FullName)
+                .ToArray();
+
+            foreach (var b in books)
+            {
+                sb.AppendLine(b.FullName);
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        // Problem 09
+
+        public static string GetBookTitlesContaining(BookShopContext context, string input)
+        {
+            var books = context.Books
+                .Where(b => b.Title.ToLower().Contains(input.ToLower()))
+                .Select(b => b.Title)
+                .OrderBy(b => b)
+                .ToArray();
+
+            return string.Join(Environment.NewLine, books);
+        }
+
+        // Problem 10
+
+        public static string GetBooksByAuthor(BookShopContext context, string input)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var books = context.Books
+                .Where(b => b.Author.LastName.ToLower().StartsWith(input.ToLower()))
+                .OrderBy(b => b.BookId)
+                .Select(b => new
+                {
+                    AuthorFullName = b.Author.FirstName + " " + b.Author.LastName,
+                    BookTitle = b.Title
+                })
+                .ToArray();
+
+            foreach (var b in books)
+            {
+                sb.AppendLine($"{b.BookTitle} ({b.AuthorFullName})");
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        // Problem 11
+
+        public static int CountBooks(BookShopContext context, int lengthCheck)
+        {
+            var books = context.Books
+                .Where(b => b.Title.Length > lengthCheck)
+                .Count();
+
+            return books;
+        }
+
+        // Problem 12
+
+        public static string CountCopiesByAuthor(BookShopContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var books = context.Authors
+                .Select(a => new
+                {
+                    FullName = a.FirstName + ' ' + a.LastName,
+                    Copies = a.Books.Sum(b => b.Copies)
+                })
+                .OrderByDescending(b => b.Copies)
+                .ToArray();
+
+            foreach (var b in books)
+            {
+                sb.AppendLine($"{b.FullName} - {b.Copies}");
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        // Problem 13
+
+        public static string GetTotalProfitByCategory(BookShopContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var bookCategories = context.Categories
+                .Select(bc => new
+                {
+                    bc.Name,
+                    TotalProfit = bc.CategoryBooks.Sum(cb => cb.Book.Copies * cb.Book.Price)
+                })
+                .OrderByDescending(bc => bc.TotalProfit)
+                .ThenBy(bc => bc.Name)
+                .ToArray();
+
+            foreach (var b in bookCategories)
+            {
+                sb.AppendLine($"{b.Name} ${b.TotalProfit:f2}");
+            }
+
+            return sb.ToString().Trim();
+        }
     }
 }
