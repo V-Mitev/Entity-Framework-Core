@@ -18,7 +18,7 @@
 
             //int input = int.Parse(Console.ReadLine());
 
-            string result = GetTotalProfitByCategory(db);
+            string result = GetMostRecentBooks(db);
 
             Console.WriteLine(result);
         }
@@ -251,6 +251,74 @@
             }
 
             return sb.ToString().Trim();
+        }
+
+        // Problem 14
+
+        public static string GetMostRecentBooks(BookShopContext context)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var categories = context.Categories
+                .OrderBy(c => c.Name)
+                .Select(c => new
+                {
+                    CategoryName = c.Name,
+                    MostRecentBooks = c.CategoryBooks
+                        .OrderByDescending(cb => cb.Book.ReleaseDate)
+                        .Take(3)
+                        .Select(cb => new
+                        {
+                            BookTitle = cb.Book.Title,
+                            ReleaseYear = cb.Book.ReleaseDate!.Value.Year
+                        })
+                        .ToArray()
+                })
+                .ToArray();
+
+            foreach (var c in categories)
+            {
+                sb.AppendLine($"--{c.CategoryName}");
+
+                foreach (var b in c.MostRecentBooks)
+                {
+                    sb.AppendLine($"{b.BookTitle} ({b.ReleaseYear})");
+                }
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        // Problem 15
+
+        public static void IncreasePrices(BookShopContext context)
+        {
+            var increasedBooksPrice = context.Books
+                .Where(b => b.ReleaseDate.HasValue && 
+                            b.ReleaseDate.Value.Year < 2010)
+                .Select(b => b)
+                .ToArray();
+
+            foreach (var b in increasedBooksPrice)
+            {
+                b.Price += 5;
+            }
+        }
+
+        //Problem 16
+
+        public static int RemoveBooks(BookShopContext context)
+        {
+            var deletedBooks = context.Books
+                .Where(b => b.Copies < 4200);
+
+            context.Books.RemoveRange(deletedBooks);
+
+            int countOfRemovedBooks = deletedBooks.Count();
+
+            context.SaveChanges();
+
+            return countOfRemovedBooks;
         }
     }
 }
