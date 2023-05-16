@@ -8,10 +8,11 @@ namespace ProductShop
     public class ProductShopProfile : Profile
     {
         public ProductShopProfile()
-        {
+        { 
             // User
 
             CreateMap<ImportUserDto, User>();
+
             CreateMap<User, ExportUserSoldProducts>()
                 .ForMember(d => d.SoldProducts,
                 opt => opt.MapFrom(s => s.ProductsSold));

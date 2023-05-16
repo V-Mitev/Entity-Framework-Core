@@ -17,7 +17,7 @@ namespace ProductShop
 
             //string inputXml = File.ReadAllText(@"../../../Datasets/categories-products.xml");
 
-            string result = GetCategoriesByProductsCount(context);
+            string result = GetUsersWithProducts(context);
 
             Console.WriteLine(result);
         }
@@ -184,7 +184,42 @@ namespace ProductShop
         }
 
         // Problem 08
+        public static string GetUsersWithProducts(ProductShopContext context)
+        {
+            XmlHelper xmlHelper = new XmlHelper();
 
+            var usersInfo = context
+              .Users
+              .Where(u => u.ProductsSold.Any())
+              .OrderByDescending(u => u.ProductsSold.Count)
+              .Select(u => new UserInfo()
+              {
+                  FirstName = u.FirstName,
+                  LastName = u.LastName,
+                  Age = u.Age,
+                  SoldProducts = new SoldProductsCount()
+                  {
+                      Count = u.ProductsSold.Count,
+                      Products = u.ProductsSold.Select(p => new SoldProduct()
+                      {
+                          Name = p.Name,
+                          Price = p.Price
+                      })
+                      .OrderByDescending(p => p.Price)
+                      .ToArray()
+                  }
+              })
+              .Take(10)
+              .ToArray();
+
+            ExportUserCountDto exportUserCountDto = new ExportUserCountDto()
+            {
+                Count = context.Users.Count(u => u.ProductsSold.Any()),
+                Users = usersInfo
+            };
+
+            return xmlHelper.Serialize(exportUserCountDto, "Users");
+        }
 
         private static IMapper InitializeAutoMapper()
         {
